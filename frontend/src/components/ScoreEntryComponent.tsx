@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { toast } from 'react-toastify';
 
-import { api } from '@/services/api';
+import { api, DuplicateError } from '@/services/api';
 import type { CreateScoreRequest, Game } from "@/services/api";
 
 interface ScoreEntryProps {
@@ -16,6 +16,7 @@ export function ScoreEntry({playerName}: ScoreEntryProps) {
     // set up state variables
     const [games, setGames] = useState<Game[]>([]);
     const [loading, setLoading] = useState(true);
+    const [update, setUpdate] = useState(false);
     const [error, setError] = useState<Error | null>(null);
     const [selectedDate, setSelectedDate] = useState<string>(getTodaysDate());
     const [selectedGame, setSelectedGame] = useState<string>('');
@@ -32,7 +33,6 @@ export function ScoreEntry({playerName}: ScoreEntryProps) {
     if (loading) return <div>Loading...</div>
     if (error) return <div>{error.message} Bad Player Name: {playerName}</div>
 
-    // form submission handler
     const handleSubmit = async () => {
         const scoreRequest: CreateScoreRequest = {
             playerName: playerName,
@@ -49,15 +49,43 @@ export function ScoreEntry({playerName}: ScoreEntryProps) {
             setSelectedGame('');
             setGameScore('');
         } catch (error) {
-            console.error('Error creating score:', error);
-            const message = error instanceof Error ? error.message : "Failed to save score"
-            toast.error(message)
+            if (error instanceof DuplicateError){
+                toast.error("DUPLICATE")
+                setUpdate(true);
+            } else {
+                console.error('Error creating score:', error);
+                const message = error instanceof Error ? error.message : "Failed to save score"
+                toast.error(message)
+            }
         }
     };
 
+    const handleUpdate = async () => {
+        const scoreRequest: CreateScoreRequest = {
+            playerName: playerName,
+            gameName: selectedGame,
+            date: selectedDate,
+            score: Number(gameScore),
+        };
+
+        try {
+            await api.updateScore(scoreRequest);
+            // update UI
+            toast.success('Score Updated!')
+            setSelectedDate(getTodaysDate());
+            setSelectedGame('');
+            setGameScore('');
+            setUpdate(false);
+        } catch (error) {                    
+            console.error('Error creating score:', error);
+            const message = error instanceof Error ? error.message : "Failed to save score"
+            toast.error(message)            
+        }
+    }
+
     return (
         <div className="bg-white rounded-lg shadow-md p-6 max-w-sm">
-            <form onSubmit={(e)=>{ e.preventDefault(); handleSubmit();}}>
+            <form onSubmit={(e)=>{ e.preventDefault(); update ? handleUpdate() : handleSubmit();}}>
                 <div className="mb-4">
                     <label className="block mb-2 font-medium">Date</label>
                     <input 
@@ -65,7 +93,7 @@ export function ScoreEntry({playerName}: ScoreEntryProps) {
                         type="date" 
                         required
                         value={selectedDate}
-                        onChange={(e) => setSelectedDate(e.target.value)}
+                        onChange={(e) => {setSelectedDate(e.target.value); setUpdate(false);}}
                     />
                 </div>
                 <div className="mb-4">
@@ -74,7 +102,7 @@ export function ScoreEntry({playerName}: ScoreEntryProps) {
                         className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer" 
                         required
                         value={selectedGame}
-                        onChange={(e) => setSelectedGame(e.target.value)}
+                        onChange={(e) => {setSelectedGame(e.target.value); setUpdate(false);}}
                     >
                         <option value="">Select Game</option>
                         {games.map((game) => (
@@ -93,8 +121,8 @@ export function ScoreEntry({playerName}: ScoreEntryProps) {
                         onChange={(e) => setGameScore(e.target.value)}
                     />                    
                 </div>
-                <div className="mt-4 text-right">                    
-                    <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">Save</button>                     
+                <div className="mt-4 text-right">
+                    <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">{update? 'Update' : 'Save'}</button>                     
                 </div>
             </form>
         </div>

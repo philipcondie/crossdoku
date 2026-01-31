@@ -1,6 +1,18 @@
-import type { CreateScoreRequest, Score } from "./types";
+import { type CreateScoreRequest, type Score} from "./types";
 
 const API_BASE_URL = 'http://localhost:8000'
+
+export class ApiError extends Error {
+    status: number;
+
+    constructor(status: number, message: string) {
+        super(message);
+        this.status = status;
+    }
+}
+
+export class DuplicateError extends ApiError {
+}
 
 export const api = {
     // get players
@@ -41,7 +53,6 @@ export const api = {
         }
         return response.json();
     },
-
     // get combined scores
     async getCombinedScores(date: string) {
         const url = `${API_BASE_URL}/scores/combined?date=${date}`;
@@ -51,7 +62,6 @@ export const api = {
         }
         return response.json();
     },
-
     // get monthly scores
     async getMonthlyScores(date:string) {
         const url = `${API_BASE_URL}/scores/monthly?date=${date}`;
@@ -69,7 +79,22 @@ export const api = {
             body: JSON.stringify(scoreData),
         });
         if (!response.ok) {
+            if (response.status == 409) {
+                throw new DuplicateError(response.status, response.statusText);
+            }
             throw new Error(`Failed to create score: ${response.statusText}`);
+        }
+        return response.json();
+    },
+    // update score
+    async updateScore(scoreData: CreateScoreRequest): Promise<Score> {
+        const response= await fetch(`${API_BASE_URL}/score`,{
+            method: 'PUT',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(scoreData),
+        });
+        if (!response.ok) {
+            throw new Error(`Failed to update score: ${response.statusText}`);
         }
         return response.json();
     },
