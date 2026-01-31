@@ -8,7 +8,7 @@ from typing import Annotated, Optional
 from .models import Player, Game, Score, ScoreMethod, GamePublic, PlayerPublic, ScoreCreate, ScorePublic
 from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse
 from .stats import calculateDailyCombinedScore, calculateMonthlyPoints
-from .exceptions import DuplicateScoreException, InvalidDateException
+from .exceptions import DuplicateScoreException, InvalidDateException, InvalidUpdateException
 
 
 def getAllPlayers(session: Session)->list[Player]:
@@ -31,7 +31,7 @@ def addNewScore(session: Session, score: ScoreCreate):
                                                 Score.date == score.date)
                                                 ).first()
     if existing:
-        raise DuplicateScoreException(score.playerName,score.gameName,score.date.strftime("%Y-%m-%d"))
+        raise DuplicateScoreException(score.playerName,score.gameName,score.date.strftime("%Y-%m-%d"),existing.score)
     
     try:
         db_score = Score(
@@ -50,8 +50,37 @@ def addNewScore(session: Session, score: ScoreCreate):
         }
     except IntegrityError:
         session.rollback()
-        raise DuplicateScoreException(score.playerName,score.gameName,score.date.strftime("%Y-%m-%d"))
+        raise DuplicateScoreException(score.playerName,score.gameName,score.date.strftime("%Y-%m-%d"),score.score)
     
+def updateScore(session: Session, score: ScoreCreate):
+    player = session.exec(select(Player).where(Player.name == score.playerName)).first()
+    if not player:
+        raise HTTPException(404, "Player Not Found")
+    assert player.id is not None
+
+    game = session.exec(select(Game).where(Game.name == score.gameName)).first()
+    if not game:
+        raise HTTPException(404, "Game not found")
+    assert game.id is not None
+
+    # check for duplicate score
+    existing = session.exec(select(Score).where(Score.playerId == player.id,
+                                                Score.gameId == game.id,
+                                                Score.date == score.date)
+                                                ).first()
+    if existing is None:
+        raise InvalidUpdateException()
+
+    existing.score = score.score
+    session.add(existing)
+    session.commit()
+    session.refresh(existing)
+    return {
+        "date": existing.date,
+            "playerName": player.name,
+            "gameName": game.name,
+            "score": existing.score
+    }
 def getGamesForPlayer(session: Session, playerName: str) -> list[Game]:
     player = session.exec(select(Player).where(Player.name == playerName)).first()
     if player is None:

@@ -11,7 +11,7 @@ from .models import PlayerPublic, GamePublic, ScorePublic, ScoreCreate
 from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse
 from .database import get_session, create_db_and_tables, close_db, seed_database
 from .exceptions import DuplicateScoreException, InvalidDateException
-from .services import getAllPlayers, addNewScore, getGamesForPlayer, getDailyScores, getCombinedScores, getScoreboardDaily, getScoreboardMonthly
+from .services import getAllPlayers, addNewScore, getGamesForPlayer, getDailyScores, getCombinedScores, getScoreboardDaily, getScoreboardMonthly, updateScore as updateScoreService
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -53,6 +53,13 @@ def addScore(
         raise InvalidDateException()
     
     return addNewScore(session, score)
+
+@app.put("/score/", response_model=ScorePublic)
+def updateScore(
+    session: SessionDep,
+    score: ScoreCreate
+):
+    return updateScoreService(session, score)
     
 @app.get("/games/{playerName}", response_model=list[GamePublic])
 def getGames(
