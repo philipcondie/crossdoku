@@ -3,10 +3,10 @@ from sqlalchemy import select as sa_select
 import datetime
 import pandas as pd
 import numpy as np
-from typing import Annotated, Optional, Any
+from typing import Any
 
-from .models import Score, Player, Game
-from .schemas import ScoreResponse, PlayerMonthlyPoint, MonthlyScoreboardResponse
+from .models import ScorePublic
+from .schemas import PlayerMonthlyPoint
 
 def calculateMonthlyPoints(games:dict, scoreEntries:list[dict[str,Any]]) -> list[PlayerMonthlyPoint]:
 
@@ -81,7 +81,7 @@ def calculateMonthlyPoints(games:dict, scoreEntries:list[dict[str,Any]]) -> list
 
 def calculateDailyCombinedScore(games:dict, 
                                 scoreEntries: list[dict[str,Any]], 
-                                date: datetime.date) -> list[ScoreResponse]:
+                                date: datetime.date) -> list[ScorePublic]:
     
     scores = pd.DataFrame(scoreEntries, columns=['gameName','playerName','score'])
     gameStats = scores.groupby('gameName').agg({'score':['mean','std']}).reset_index()
@@ -99,7 +99,7 @@ def calculateDailyCombinedScore(games:dict,
     # create combined score dataframe
     combinedScores = scoresAgg.groupby('playerName')['t_score'].sum()
     return [
-        ScoreResponse(
+        ScorePublic(
             date=date,
             playerName=str(playerName),
             gameName="Combined",

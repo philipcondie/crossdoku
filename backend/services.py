@@ -5,8 +5,8 @@ from fastapi import HTTPException
 import datetime
 from typing import Annotated, Optional
 
-from .models import Player, Game, Score, ScoreMethod, GamePublic, PlayerPublic
-from .schemas import ScoreCreate, ScoreResponse, DailyScoreboardResponse, MonthlyScoreboardResponse
+from .models import Player, Game, Score, ScoreMethod, GamePublic, PlayerPublic, ScoreCreate, ScorePublic
+from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse
 from .stats import calculateDailyCombinedScore, calculateMonthlyPoints
 from .exceptions import DuplicateScoreException, InvalidDateException
 
@@ -64,7 +64,7 @@ def getDailyScores(
         startDate: datetime.date,
         endDate: Optional[datetime.date] = None,
         playerName: Optional[str] = None,
-        gameName: Optional[str] = None,) -> list[ScoreResponse]:
+        gameName: Optional[str] = None,) -> list[ScorePublic]:
     query = (
         sa_select(
             col(Score.date),
@@ -84,12 +84,12 @@ def getDailyScores(
     if gameName:
         query = query.where(col(Game.name) == gameName)
     results = session.execute(query).all()
-    return [ScoreResponse.model_validate(result) for result in results]
+    return [ScorePublic.model_validate(result) for result in results]
 
 def getCombinedScores(
         session: Session,
         date: datetime.date
-    ) -> list[ScoreResponse]:
+    ) -> list[ScorePublic]:
     # get games info for t_score multiplier
     games = session.exec(select(Game))
     gamesDict = {game.name: game.scoreMethod for game in games}

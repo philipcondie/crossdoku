@@ -53,13 +53,9 @@ class GamePublic(GameBase):
     id: int
 
 ### Score Models
-
 class ScoreBase(SQLModel):
     date: datetime.date
-    playerId: int
-    gameId: int
     score: int
-
 
 class Score(ScoreBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
@@ -76,8 +72,9 @@ class Score(ScoreBase, table=True):
     game: Game = Relationship(back_populates="scores")
 
 class ScorePublic(ScoreBase):
-    id: int
+    playerName: str
+    gameName: str
 
-# Add models for: 
-#   responses with relationships
-#   update models
+class ScoreCreate(ScoreBase):
+    playerName: str
+    gameName: str

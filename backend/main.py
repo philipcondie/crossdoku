@@ -7,9 +7,9 @@ from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from .models import Player, PlayerPublic, Game, Score, GamePublic, ScoreMethod
+from .models import PlayerPublic, GamePublic, ScorePublic, ScoreCreate
+from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse
 from .database import get_session, create_db_and_tables, close_db, seed_database
-from . import schemas
 from .exceptions import DuplicateScoreException, InvalidDateException
 from .services import getAllPlayers, addNewScore, getGamesForPlayer, getDailyScores, getCombinedScores, getScoreboardDaily, getScoreboardMonthly
 
@@ -44,10 +44,10 @@ def getPlayers(
     ):
     return getAllPlayers(session=session)
 
-@app.post("/score/", response_model=schemas.ScoreResponse)
+@app.post("/score/", response_model=ScorePublic)
 def addScore(
     session: SessionDep,
-    score: schemas.ScoreCreate
+    score: ScoreCreate
     ):
     if score.date > datetime.date.today():
         raise InvalidDateException()
@@ -60,7 +60,7 @@ def getGames(
     playerName: str):
    return getGamesForPlayer(session, playerName)
     
-@app.get("/scores/", response_model=list[schemas.ScoreResponse])
+@app.get("/scores/", response_model=list[ScorePublic])
 def getScores(
     session: SessionDep,
     startDate: datetime.date,
@@ -74,7 +74,7 @@ def getScores(
         raise InvalidDateException()
     return getDailyScores(session,startDate,endDate,playerName,gameName)
     
-@app.get("/scores/combined", response_model=list[schemas.ScoreResponse])
+@app.get("/scores/combined", response_model=list[ScorePublic])
 def getCombinedScores(
     session: SessionDep,
     date: datetime.date
@@ -83,7 +83,7 @@ def getCombinedScores(
         raise InvalidDateException()
     return getCombinedScores(session,date)
 
-@app.get("/scores/daily", response_model=schemas.DailyScoreboardResponse)
+@app.get("/scores/daily", response_model=DailyScoreboardResponse)
 def getDailyScoreboard(
     session: SessionDep,
     date: datetime.date
@@ -92,7 +92,7 @@ def getDailyScoreboard(
         raise InvalidDateException()
     return getScoreboardDaily(session, date)
 
-@app.get("/scores/monthly", response_model=schemas.MonthlyScoreboardResponse)
+@app.get("/scores/monthly", response_model=MonthlyScoreboardResponse)
 def getMonthlyScoreboard(
     session: SessionDep,
     date: datetime.date

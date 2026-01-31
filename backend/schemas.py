@@ -1,27 +1,12 @@
 from sqlmodel import SQLModel
-from .models import GamePublic, PlayerPublic
+from .models import GamePublic, PlayerPublic, ScorePublic
 import datetime
-
-class GamesResponse(SQLModel):
-    games: list[GamePublic]
-
-class ScoreCreate(SQLModel):
-    date: datetime.date
-    playerName: str
-    gameName: str
-    score: int
-
-class ScoreResponse(SQLModel):
-    date: datetime.date
-    playerName: str
-    gameName: str
-    score: int
 
 class DailyScoreboardResponse(SQLModel):
     date: datetime.date
     players: list[PlayerPublic]
     games: list[GamePublic]
-    scores: list[ScoreResponse]
+    scores: list[ScorePublic]
 
 class PlayerMonthlyPoint(SQLModel):
     playerName: str
