@@ -12,6 +12,7 @@ from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse
 from .database import get_session, create_db_and_tables, close_db, seed_database
 from .exceptions import DuplicateScoreException, InvalidDateException
 from .services import getAllPlayers, addNewScore, getGamesForPlayer, getDailyScores, getCombinedScores, getScoreboardDaily, getScoreboardMonthly, updateScore as updateScoreService
+from .config import get_settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -25,10 +26,9 @@ async def lifespan(app: FastAPI):
 SessionDep = Annotated[Session,Depends(get_session)]
 
 app = FastAPI(lifespan=lifespan)
+settings = get_settings()
 
-origins = [
-    "http://localhost:5173"
-]
+origins = settings.cors_origins.split(",")
 
 app.add_middleware(
     CORSMiddleware,

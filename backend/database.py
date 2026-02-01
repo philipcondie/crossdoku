@@ -1,25 +1,32 @@
 from sqlmodel import create_engine, SQLModel, Session
 
 from .models import *
+from .config import get_settings
 
 # database set up
-sqlite_file_name = "database.db"
-sqlite_url = f"sqlite:///{sqlite_file_name}"
-connect_args = {"check_same_thread": False}
-engine = create_engine(sqlite_url,connect_args=connect_args,echo=True)
+settings = get_settings()
+
+# SQLite requires check_same_thread=False for FastAPI's async handling
+connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
+engine = create_engine(settings.database_url, connect_args=connect_args, echo=(settings.environment == "development"))
 
 def create_db_and_tables():
     import os
-    if os.path.exists(sqlite_file_name):
-        os.remove(sqlite_file_name)
+    # In development with SQLite, wipe and recreate for fresh seed data
+    if settings.environment == "development" and settings.database_url.startswith("sqlite"):
+        db_file = settings.database_url.replace("sqlite:///", "")
+        if os.path.exists(db_file):
+            os.remove(db_file)
     SQLModel.metadata.create_all(engine)
 
 def close_db():
-    engine.dispose()
-    # remove the file for now
     import os
-    if os.path.exists(sqlite_file_name):
-        os.remove(sqlite_file_name)
+    engine.dispose()
+    # Clean up SQLite file in development
+    if settings.environment == "development" and settings.database_url.startswith("sqlite"):
+        db_file = settings.database_url.replace("sqlite:///", "")
+        if os.path.exists(db_file):
+            os.remove(db_file)
 
 def get_session():
     with Session(engine) as session:
