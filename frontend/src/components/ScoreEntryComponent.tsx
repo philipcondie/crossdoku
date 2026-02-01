@@ -3,6 +3,7 @@ import { toast } from 'react-toastify';
 
 import { api, DuplicateError } from '@/services/api';
 import type { CreateScoreRequest, Game } from "@/services/api";
+import { Spinner } from "./SpinnerComponent";
 
 interface ScoreEntryProps {
     playerName: string;
@@ -30,7 +31,7 @@ export function ScoreEntry({playerName}: ScoreEntryProps) {
         .finally(() => {setLoading(false);});
     }, [playerName]);
 
-    if (loading) return <div>Loading...</div>
+    if (loading) return <Spinner />
     if (error) return <div>{error.message} Bad Player Name: {playerName}</div>
 
     const handleSubmit = async () => {

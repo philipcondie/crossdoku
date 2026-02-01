@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 
 import { api } from '@/services/api';
 import type { Player, Point} from "@/services/api";
+import { Spinner } from "./SpinnerComponent";
 
 export function MonthlyPoints() {
     // create state variables (players, games, points, loading, error)
@@ -55,7 +56,7 @@ export function MonthlyPoints() {
         "Total": "Total"
     };
     // create display
-    if (loading) return <div>Loading...</div>
+    if (loading) return <Spinner />
     if (error) return <div>Error: {error.message}</div>
     if (players.length === 0 || categories.length === 0 || games.length === 0 || points.length === 0) return <div>No data available</div>
 

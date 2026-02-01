@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { api } from '@/services/api';
 import type { Game, Score} from "@/services/api";
 import { GameScorecard } from "./GameScorecardComponent";
+import { Spinner } from "./SpinnerComponent";
 
 export function DailyScores() {
     // date selector with default date
@@ -32,7 +33,7 @@ export function DailyScores() {
         fetchData();
     }, []);
     
-    if (loading) return <div>Loading...</div>
+    if (loading) return <Spinner />
     if (error) return <div>Error: {error.message}</div>
     if (games.length === 0 || scores.length === 0) return <div>No data available</div>
     
