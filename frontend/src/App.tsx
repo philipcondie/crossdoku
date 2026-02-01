@@ -1,6 +1,6 @@
 import { ToastContainer } from 'react-toastify';
 
-import {Routes, Route}  from 'react-router-dom'
+import {Routes, Route, Navigate}  from 'react-router-dom'
 import { ScoreEntry } from './components/ScoreEntryComponent';
 import { DailyScores } from './components/DailyScoresComponent';
 import { MonthlyPoints } from './components/MonthlyPointsComponent';
@@ -12,6 +12,7 @@ function App() {
     <>
       <Routes>
         <Route element={<Layout />} >
+          <Route index element={<Navigate to="/score" replace/>} />
           <Route element={<CardContainer />} >
             <Route path="/monthly" element={<MonthlyPoints /> } />
             <Route path="/daily" element={<DailyScores />} />
