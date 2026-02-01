@@ -1,0 +1,19 @@
+services:
+  db: 
+    image: postgres:15
+    environment:
+      POSTGRES_USER: crossdoku
+      POSTGRES_PASSWORD: crossdoku
+      POSTGRES_DB: crossdoku
+    ports:
+    - "5050:5432"
+  backend:
+    build: ./backend
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://crossdoku:crossdoku@db:5432/crossdoku
+      - CORS_ORIGINS=http://localhost:5173
+    ports:
+      - "8000:8000"
+    

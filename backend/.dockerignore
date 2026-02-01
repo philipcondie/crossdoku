@@ -1,0 +1,8 @@
+__pycache__
+.claude
+.planning
+.venv
+.env
+.git
+.gitignore
+CLAUDE.md

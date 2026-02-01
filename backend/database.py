@@ -1,4 +1,4 @@
-from sqlmodel import create_engine, SQLModel, Session
+from sqlmodel import create_engine, SQLModel, Session, select
 
 from .models import *
 from .config import get_settings
@@ -11,28 +11,20 @@ connect_args = {"check_same_thread": False} if settings.database_url.startswith(
 engine = create_engine(settings.database_url, connect_args=connect_args, echo=(settings.environment == "development"))
 
 def create_db_and_tables():
-    import os
-    # In development with SQLite, wipe and recreate for fresh seed data
-    if settings.environment == "development" and settings.database_url.startswith("sqlite"):
-        db_file = settings.database_url.replace("sqlite:///", "")
-        if os.path.exists(db_file):
-            os.remove(db_file)
     SQLModel.metadata.create_all(engine)
 
 def close_db():
-    import os
     engine.dispose()
-    # Clean up SQLite file in development
-    if settings.environment == "development" and settings.database_url.startswith("sqlite"):
-        db_file = settings.database_url.replace("sqlite:///", "")
-        if os.path.exists(db_file):
-            os.remove(db_file)
 
 def get_session():
     with Session(engine) as session:
         yield session
 
 def seed_database():
+    with Session(engine) as session:
+        existing = session.exec(select(Player)).first()
+        if existing:
+            return # already seeded
     import datetime
 
     player1 = Player(name="phil")
