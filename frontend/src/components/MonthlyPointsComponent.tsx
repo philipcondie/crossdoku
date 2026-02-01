@@ -19,7 +19,6 @@ export function MonthlyPoints() {
             try {
                 const today = '2025-12-25' // new Date().toISOString().split('T')[0];
                 const result = await api.getMonthlyScores(today);
-                console.log(result);
 
                 setPlayers(result.players);
                 setCategories(result.categories);
@@ -61,38 +60,40 @@ export function MonthlyPoints() {
     if (players.length === 0 || categories.length === 0 || games.length === 0 || points.length === 0) return <div>No data available</div>
 
     return (
-        <div  className="space-y-4">
-            <div className="bg-white rounded-lg shadow-md p-6 max-w-sm">
-                <h2 className="text-xl font-bold mb-3">Monthly Points</h2>
-                <div className="flex justify-between items-center py-2 border-b border-gray-200">
-                    <p className="flex-2 font-bold">Players</p>         
-                    {categories.map(category => (
-                        <p key={category} className="flex-1 font-bold">{categoryDisplayNames[category]}</p>
+        <>
+            <div  className="space-y-4">
+                <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 max-w-sm">
+                    <h2 className="text-xl font-bold mb-3">Points</h2>
+                    <div className="flex justify-between items-center py-2 border-b border-gray-200">
+                        <p className="flex-2 font-bold"></p>         
+                        {categories.map(category => (
+                            <p key={category} className="flex-1 font-bold">{categoryDisplayNames[category]}</p>
+                        ))}
+                    </div>
+                    {players.map(player => (
+                        <div key={player.name} className="flex justify-between items-center py-2 border-b border-gray-200">
+                            <p className="flex-2">{player.name}</p>
+                            {categories.map(category => (
+                                <p key={category} className="flex-1">{getPoint(category,player.name)}</p>
+                            ))}
+                        </div>
                     ))}
                 </div>
-                {players.map(player => (
-                    <div key={player.name} className="flex justify-between items-center py-2 border-b border-gray-200">
-                        <p className="flex-2">{player.name}</p>
-                        {categories.map(category => (
-                            <p key={category} className="flex-1">{getPoint(category,player.name)}</p>
+                {games.map(game => (
+                    <div 
+                        className="bg-white rounded-lg shadow-md p-6 max-w-sm"
+                        key={game}
+                    >
+                        <h2 className="text-xl font-bold mb-3">{game}</h2>
+                        {players.map(player => (
+                            <div key={player.name} className="flex justify-between items-center py-2 border-b border-gray-200"> {/* Row */}
+                                <p className="flex-1">{player.name}</p> {/* Cell one */}
+                                <p className="font-bold ml-4">{getPoint(game,player.name)}</p> {/* Cell two */}
+                            </div>
                         ))}
                     </div>
                 ))}
             </div>
-            {games.map(game => (
-                <div 
-                    className="bg-white rounded-lg shadow-md p-6 max-w-sm"
-                    key={game}
-                >
-                    <h2 className="text-xl font-bold mb-3">Monthly {game}</h2>
-                    {players.map(player => (
-                        <div key={player.name} className="flex justify-between items-center py-2 border-b border-gray-200"> {/* Row */}
-                            <p className="flex-1">{player.name}</p> {/* Cell one */}
-                            <p className="font-bold ml-4">{getPoint(game,player.name)}</p> {/* Cell two */}
-                        </div>
-                    ))}
-                </div>
-            ))}
-        </div>
+        </>
     );
 }

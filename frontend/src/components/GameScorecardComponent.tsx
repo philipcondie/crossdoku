@@ -6,7 +6,7 @@ interface GameScorecardProps{
 }
 export function GameScorecard({game, scores}:GameScorecardProps) {
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 max-w-sm"> {/* Outer Container*/}
+        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 max-w-sm"> {/* Outer Container*/}
          <h2 className="text-xl font-bold mb-3">{game.name}</h2>
          {
             scores.map(score => (

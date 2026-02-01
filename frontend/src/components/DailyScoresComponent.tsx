@@ -39,14 +39,16 @@ export function DailyScores() {
     
     // display daily scores
     return (
-        <div className="space-y-4">
-            {games.map(game => (
-                <GameScorecard 
-                    key={game.name}
-                    game={game}
-                    scores={scores.filter(score => score.gameName === game.name)}
-                />
-            ))}
-        </div>
+        <>
+            <div className="space-y-4">
+                {games.map(game => (
+                    <GameScorecard 
+                        key={game.name}
+                        game={game}
+                        scores={scores.filter(score => score.gameName === game.name)}
+                    />
+                ))}
+            </div>
+        </>
     )
 }

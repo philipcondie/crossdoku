@@ -85,47 +85,49 @@ export function ScoreEntry({playerName}: ScoreEntryProps) {
     }
 
     return (
-        <div className="bg-white rounded-lg shadow-md p-6 max-w-sm">
-            <form onSubmit={(e)=>{ e.preventDefault(); update ? handleUpdate() : handleSubmit();}}>
-                <div className="mb-4">
-                    <label className="block mb-2 font-medium">Date</label>
-                    <input 
-                        className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer" 
-                        type="date" 
-                        required
-                        value={selectedDate}
-                        onChange={(e) => {setSelectedDate(e.target.value); setUpdate(false);}}
-                    />
-                </div>
-                <div className="mb-4">
-                    <label className="block mb-2 font-medium">Game</label>            
-                    <select 
-                        className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer" 
-                        required
-                        value={selectedGame}
-                        onChange={(e) => {setSelectedGame(e.target.value); setUpdate(false);}}
-                    >
-                        <option value="">Select Game</option>
-                        {games.map((game) => (
-                            <option key={game.id} value={game.name}>{game.name}</option>
-                        ))}
-                    </select>
-                </div>
-                <div className="mb-4">
-                    <label className="block mb-2 font-medium">Score</label>        
-                    <input 
-                        className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer" 
-                        type="number" 
-                        placeholder="Enter score here..." 
-                        required 
-                        value={gameScore}
-                        onChange={(e) => setGameScore(e.target.value)}
-                    />                    
-                </div>
-                <div className="mt-4 text-right">
-                    <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">{update? 'Update' : 'Save'}</button>                     
-                </div>
-            </form>
-        </div>
+        <>
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 max-w-sm">
+                <form onSubmit={(e)=>{ e.preventDefault(); update ? handleUpdate() : handleSubmit();}}>
+                    <div className="mb-4">
+                        <label className="block mb-2 font-medium">Date</label>
+                        <input 
+                            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer" 
+                            type="date" 
+                            required
+                            value={selectedDate}
+                            onChange={(e) => {setSelectedDate(e.target.value); setUpdate(false);}}
+                        />
+                    </div>
+                    <div className="mb-4">
+                        <label className="block mb-2 font-medium">Game</label>            
+                        <select 
+                            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer" 
+                            required
+                            value={selectedGame}
+                            onChange={(e) => {setSelectedGame(e.target.value); setUpdate(false);}}
+                        >
+                            <option value="">Select Game</option>
+                            {games.map((game) => (
+                                <option key={game.id} value={game.name}>{game.name}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="mb-4">
+                        <label className="block mb-2 font-medium">Score</label>        
+                        <input 
+                            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer" 
+                            type="number" 
+                            placeholder="Enter score here..." 
+                            required 
+                            value={gameScore}
+                            onChange={(e) => setGameScore(e.target.value)}
+                        />                    
+                    </div>
+                    <div className="mt-4 text-right">
+                        <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">{update? 'Update' : 'Save'}</button>                     
+                    </div>
+                </form>
+            </div>
+        </>
     )
 }
