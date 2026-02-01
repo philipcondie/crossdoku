@@ -8,7 +8,12 @@ settings = get_settings()
 
 # SQLite requires check_same_thread=False for FastAPI's async handling
 connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-engine = create_engine(settings.database_url, connect_args=connect_args, echo=(settings.environment == "development"))
+engine = create_engine(
+    settings.database_url, 
+    connect_args=connect_args, 
+    echo=(settings.environment == "development"),
+    pool_pre_ping=True
+    )
 
 def create_db_and_tables():
     SQLModel.metadata.create_all(engine)
