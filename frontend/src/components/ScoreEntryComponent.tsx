@@ -1,19 +1,19 @@
 import { useState, useEffect } from "react";
+import { Navigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 
 import { api, DuplicateError } from '@/services/api';
 import type { CreateScoreRequest, Game } from "@/services/api";
 import { Spinner } from "./SpinnerComponent";
+import { useAuth } from "@/context/AuthContext";
 
-interface ScoreEntryProps {
-    playerName: string;
-}
 
 function getTodaysDate() {
     return new Date().toISOString().split('T')[0];
 }
 
-export function ScoreEntry({playerName}: ScoreEntryProps) {
+export function ScoreEntry() {
+    const {playerName} = useAuth();
     // set up state variables
     const [games, setGames] = useState<Game[]>([]);
     const [loading, setLoading] = useState(true);
@@ -22,6 +22,10 @@ export function ScoreEntry({playerName}: ScoreEntryProps) {
     const [selectedDate, setSelectedDate] = useState<string>(getTodaysDate());
     const [selectedGame, setSelectedGame] = useState<string>('');
     const [gameScore, setGameScore] = useState<string>('');
+
+    if (!playerName) {
+        return <Navigate to='/login'/>
+    }
 
     // load list of games
     useEffect(() => {

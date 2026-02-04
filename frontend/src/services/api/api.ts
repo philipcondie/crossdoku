@@ -15,6 +15,18 @@ export class DuplicateError extends ApiError {
 }
 
 export const api = {
+    // authorize user
+    async verifyPassword(password: string) {
+        const response = await fetch(`${API_BASE_URL}/auth/verify`,{
+            method: 'POST',
+            headers: {'Content-Type': 'application/json' },
+            body: JSON.stringify({password}),
+        });
+        if (!response.ok) {
+            throw new Error('Invalid password')
+        }
+        return response.json();
+    },
     // get players
     async getPlayers() {
         const response = await fetch (`${API_BASE_URL}/players`);
