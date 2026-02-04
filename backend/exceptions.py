@@ -17,3 +17,7 @@ class InvalidDateException(ScoreboardExcepction):
 class InvalidUpdateException(ScoreboardExcepction):
     def __init__(self):
         super().__init__(status_code=status.HTTP_404_NOT_FOUND,detail="Cannot update non-existent score")
+
+class InvalidPasswordException(ScoreboardExcepction):
+    def __init__(self):
+        super().__init__(status_code=status.HTTP_401_UNAUTHORIZED,detail="Invalid password")

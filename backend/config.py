@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///database.db"
     cors_origins: str = "http://localhost:5173"
     environment: str = "development"
+    app_password: str = "dev"
 
     class Config:
         env_file = ".env"

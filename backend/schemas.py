@@ -2,6 +2,9 @@ from sqlmodel import SQLModel
 from .models import GamePublic, PlayerPublic, ScorePublic
 import datetime
 
+class AuthRequest(SQLModel):
+    password: str
+
 class DailyScoreboardResponse(SQLModel):
     date: datetime.date
     players: list[PlayerPublic]

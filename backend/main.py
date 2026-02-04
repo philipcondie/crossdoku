@@ -8,9 +8,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from .models import PlayerPublic, GamePublic, ScorePublic, ScoreCreate
-from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse
+from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse, AuthRequest
 from .database import get_session, create_db_and_tables, close_db, seed_database
-from .exceptions import DuplicateScoreException, InvalidDateException
+from .exceptions import InvalidPasswordException, InvalidDateException
 from .services import getAllPlayers, addNewScore, getGamesForPlayer, getDailyScores, getCombinedScores, getScoreboardDaily, getScoreboardMonthly, updateScore as updateScoreService
 from .config import get_settings
 
@@ -37,6 +37,12 @@ app.add_middleware(
     allow_methods=['*'],
     allow_headers=['*']
 )
+
+@app.post("/auth/verify")
+def verify_password(request: AuthRequest):
+    if request.password != settings.app_password:
+        raise InvalidPasswordException()
+    return {"authenticated": True}
 
 @app.get("/players/", response_model=list[PlayerPublic])
 def getPlayers(
