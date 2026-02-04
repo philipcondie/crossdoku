@@ -14,9 +14,8 @@ function App() {
     <>
       <Routes>
         <Route path="/login" element={<PasswordGate />} />
-
-        <Route element={<ProtectedRoute />}>
-          <Route element={<Layout />} >
+        <Route element={<Layout />} >
+          <Route element={<ProtectedRoute />}>
             <Route index element={<Navigate to="/score" replace/>} />
             <Route element={<CardContainer />} >
               <Route path="/monthly" element={<MonthlyPoints /> } />

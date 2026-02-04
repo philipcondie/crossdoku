@@ -32,21 +32,27 @@ export function PasswordGate () {
 
     if (isAuthenticated) {
         return (
-            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 max-w-sm">
-                <form onSubmit={handleSelect}>
-                    <div className="mb-4">
-                        <label className="block mb-2 font-medium">Player</label>
-                        <select onChange={(e) => {setSelectedPlayer(e.target.value)}} value={selectedPlayer} required>
+            <div className="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+                <div className="bg-white rounded-xl shadow-md border border-gray-200 flex flex-col min-h-100 w-full max-w-md items-center justify-center">
+                    <div className='w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-300 rounded-2xl flex items-center justify-center mb-6 text-white   
+  text-3xl font-bold'>C</div>
+                    <form className='w-full p-5' onSubmit={handleSelect}>
+                        <select 
+                            onChange={(e) => {setSelectedPlayer(e.target.value)}} 
+                            value={selectedPlayer} 
+                            required
+                            className="border border-gray-300 rounded-lg px-4 py-3.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-text"
+                            >
                             <option value="">Select Player</option>
                             {players.map((player) => (
                                 <option key={player.id} value={player.name}>{player.name}</option>
                             ))}
                         </select>
                         <div className="mt-4 text-right">
-                            <button type='submit' className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">Select</button>                     
+                            <button type='submit' className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold w-full py-3.5">Select</button>                     
                         </div>
-                    </div>
-                </form>
+                    </form>
+                </div>
             </div>
         )
     }
@@ -59,25 +65,30 @@ export function PasswordGate () {
         }
     }
 
+
     return (
-        <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6 max-w-sm">
-            <form onSubmit={handleSubmit}>
-                <div className="mb-4">
+        <div className="bg-gray-100 min-h-screen flex items-center justify-center p-4">
+            <div className="bg-white rounded-xl shadow-md border border-gray-200 flex flex-col min-h-100 w-full max-w-md items-center justify-center">
+                <div className='w-14 h-14 bg-gradient-to-br from-blue-500 to-blue-300 rounded-2xl flex items-center justify-center mb-6 text-white   
+  text-3xl font-bold'>C</div>
+                <h2 className="text-2xl mb-2 text-zinc-700">Crossdoku</h2>
+                <form className='w-full p-5' onSubmit={handleSubmit}>
                     <label className="block mb-2 font-medium">Password</label>
-                    <input 
-                            className="border border-gray-300 rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"  
+                    <input
+                            className="border border-gray-300 rounded-lg px-4 py-3.5 w-full focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-text"
                             required
                             type='password'
+                            placeholder='Enter the password'
                             onChange={(e)=>{setPassword(e.target.value);setError("");}}
                     />
-                    <div className="mt-4 text-right">
-                        <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded">Login</button>                     
+                    <div className="mt-4">
+                        <button type="submit" className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold w-full py-3.5">Login</button>
                     </div>
-                    <div className='mt-4 text-left'>
+                    <div className='mt-4'>
                         {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     )
 }
