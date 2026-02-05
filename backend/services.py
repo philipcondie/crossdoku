@@ -195,9 +195,11 @@ def getScoreboardMonthly(session:Session,
     query = query.where(col(Score.date) >= startDate).where(col(Score.date) <= endDate)
     scoreRows = session.execute(query).all()
 
-    if scoreRows:
-        scores = [{"date":r.date, "gameName":r.gameName, "playerName": r.playerName, "score": r.score} for r in scoreRows]
-        playerPoints = calculateMonthlyPoints(gamesDict,scores)
+    if not scoreRows:
+        raise HTTPException(404, "No scores found for this month")
+
+    scores = [{"date":r.date, "gameName":r.gameName, "playerName": r.playerName, "score": r.score} for r in scoreRows]
+    playerPoints = calculateMonthlyPoints(gamesDict,scores)
     return MonthlyScoreboardResponse(
         players=[PlayerPublic.model_validate(player) for player in players],
         categories=categories,

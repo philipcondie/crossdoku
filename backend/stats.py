@@ -63,8 +63,7 @@ def calculateMonthlyPoints(games:dict, scoreEntries:list[dict[str,Any]]) -> list
     scoresWide[f"individual_points"] = scoresWide[gameColumns].sum(axis=1)
 
     # create total points column and sum across other points columns
-    pointColumns = [f"{game}_points" for game in games.keys()]
-    pointColumns = pointColumns + ['individual_points', 'combined_points', 'participation_points']
+    pointColumns = ['individual_points', 'combined_points', 'participation_points']
     scoresWide['total_points'] = scoresWide[pointColumns].sum(axis=1)
     # return list of objects with player name, game name, point total attributes
 
@@ -96,8 +95,12 @@ def calculateDailyCombinedScore(games:dict,
         (scoresAgg['score'] - scoresAgg['mean']) / scoresAgg['std'] * scoresAgg['t_multiplier']
         )
     
+    # filter to only players who participated in all games
+    scoresAgg['game_count'] = scoresAgg.groupby(['playerName'])['gameName'].transform('nunique')
+    eligibleScores = scoresAgg[scoresAgg['game_count'] == len(games.keys())]
+    
     # create combined score dataframe
-    combinedScores = scoresAgg.groupby('playerName')['t_score'].sum()
+    combinedScores = eligibleScores.groupby('playerName')['t_score'].sum()
     return [
         ScorePublic(
             date=date,

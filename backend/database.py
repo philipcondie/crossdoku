@@ -16,6 +16,10 @@ engine = create_engine(
     )
 
 def create_db_and_tables():
+    if settings.database_url.startswith("sqlite"):
+        import os
+        if os.path.exists("database.db"):
+            os.remove("database.db")
     SQLModel.metadata.create_all(engine)
 
 def close_db():
@@ -30,100 +34,79 @@ def seed_database():
         existing = session.exec(select(Player)).first()
         if existing:
             return # already seeded
+
+    import csv
     import datetime
+    from pathlib import Path
 
-    player1 = Player(name="Phil")
-    player2 = Player(name="Spencer")
-    player3 = Player(name="Nate")
-    player4 = Player(name="Morgan")
-    player5 = Player(name="Sarah")
-    player6 = Player(name="Ally")
-    player7 = Player(name="Jonathan")
-    player8 = Player(name="Rebecca")
+    seed_dir = Path(__file__).parent / "seed_data"
 
-    all_players = [player1, player2, player3, player4, player5, player6, player7, player8]
+    def load_scores_from_csv(csv_path):
+        scores = []
+        with open(csv_path) as f:
+            reader = csv.reader(f)
+            header = next(reader)
+            player_names = header[1:]  # skip "Date" column
 
-    game1 = Game(
-        name="Sudoku",
-        scoreMethod=ScoreMethod.LOW,
-        players=all_players)
-    game2 = Game(
-        name="Crossword",
-        scoreMethod=ScoreMethod.LOW,
-        players=all_players)
+            for row in reader:
+                date_str = row[0]
+                month, day = date_str.split("/")
+                score_date = datetime.date(2026, int(month), int(day))
+
+                for i, value in enumerate(row[1:]):
+                    if value.strip():
+                        scores.append({
+                            "date": score_date,
+                            "player_name": player_names[i],
+                            "score": int(value),
+                        })
+        return scores
+
+    # Define games and their corresponding CSV files
+    game_configs = [
+        {"name": "Crossword", "scoreMethod": ScoreMethod.LOW, "csv": "crossword.csv"},
+        {"name": "Sudoku", "scoreMethod": ScoreMethod.LOW, "csv": "sudoku.csv"},
+    ]
 
     with Session(engine) as session:
-        # Add and commit players and games first to get their IDs
-        for player in all_players:
+        # Collect all unique player names from all CSVs
+        all_player_names = set()
+        for config in game_configs:
+            csv_path = seed_dir / config["csv"]
+            with open(csv_path) as f:
+                reader = csv.reader(f)
+                header = next(reader)
+                all_player_names.update(header[1:])
+
+        # Create players
+        players = {}
+        for name in all_player_names:
+            player = Player(name=name)
             session.add(player)
-        session.add(game1)
-        session.add(game2)
+            players[name] = player
         session.commit()
-
-        # Refresh to get auto-generated IDs
-        for player in all_players:
+        for player in players.values():
             session.refresh(player)
-        session.refresh(game1)
-        session.refresh(game2)
 
-        # Generate scores for 35 days with variety
-        import random
-        random.seed(42)  # Reproducible randomness for consistent seed data
+        # Create games and load scores from CSVs
+        for config in game_configs:
+            game = Game(
+                name=config["name"],
+                scoreMethod=config["scoreMethod"],
+                players=list(players.values()),
+            )
+            session.add(game)
+            session.commit()
+            session.refresh(game)
 
-        today = datetime.date.today()
-        scores = []
-
-        # Define player participation patterns (some players play more than others)
-        # Probability of each player having a score on any given day for each game
-        participation = {
-            player1: {"sudoku": 0.85, "crossword": 0.80},  # Phil - very active
-            player2: {"sudoku": 0.75, "crossword": 0.70},  # Spencer - active
-            player3: {"sudoku": 0.60, "crossword": 0.55},  # Nate - moderate
-            player4: {"sudoku": 0.50, "crossword": 0.65},  # Morgan - moderate, prefers crossword
-            player5: {"sudoku": 0.70, "crossword": 0.40},  # Sarah - prefers sudoku
-            player6: {"sudoku": 0.30, "crossword": 0.35},  # Ally - casual player
-            player7: {"sudoku": 0.45, "crossword": 0.50},  # Jonathan - moderate
-            player8: {"sudoku": 0.15, "crossword": 0.20},  # Rebecca - rare player (edge case)
-        }
-
-        # Score ranges (in seconds) for each player to give them different skill levels
-        score_ranges = {
-            player1: {"sudoku": (120, 240), "crossword": (180, 300)},   # Phil - good
-            player2: {"sudoku": (90, 180), "crossword": (150, 280)},    # Spencer - very good
-            player3: {"sudoku": (150, 300), "crossword": (200, 350)},   # Nate - average
-            player4: {"sudoku": (180, 350), "crossword": (160, 280)},   # Morgan - avg sudoku, good crossword
-            player5: {"sudoku": (100, 200), "crossword": (250, 400)},   # Sarah - great sudoku, slow crossword
-            player6: {"sudoku": (200, 400), "crossword": (220, 380)},   # Ally - casual
-            player7: {"sudoku": (140, 280), "crossword": (190, 320)},   # Jonathan - decent
-            player8: {"sudoku": (250, 450), "crossword": (280, 450)},   # Rebecca - beginner
-        }
-
-        for days_ago in range(35):
-            score_date = today - datetime.timedelta(days=days_ago)
-
-            for player in all_players:
-                # Sudoku scores
-                if random.random() < participation[player]["sudoku"]:
-                    min_score, max_score = score_ranges[player]["sudoku"]
-                    scores.append(Score(
-                        date=score_date,
-                        playerId=player.id,
-                        gameId=game1.id,
-                        score=random.randint(min_score, max_score)
-                    ))
-
-                # Crossword scores
-                if random.random() < participation[player]["crossword"]:
-                    min_score, max_score = score_ranges[player]["crossword"]
-                    scores.append(Score(
-                        date=score_date,
-                        playerId=player.id,
-                        gameId=game2.id,
-                        score=random.randint(min_score, max_score)
-                    ))
-
-        # Add all scores
-        for score in scores:
-            session.add(score)
+            score_entries = load_scores_from_csv(seed_dir / config["csv"])
+            for entry in score_entries:
+                player = players[entry["player_name"]]
+                session.add(Score(
+                    date=entry["date"],
+                    playerId=player.id,
+                    gameId=game.id,
+                    score=entry["score"],
+                ))
 
         session.commit()
