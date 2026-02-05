@@ -32,29 +32,37 @@ def seed_database():
             return # already seeded
     import datetime
 
-    player1 = Player(name="phil")
-    player2 = Player(name="spencer")
+    player1 = Player(name="Phil")
+    player2 = Player(name="Spencer")
+    player3 = Player(name="Nate")
+    player4 = Player(name="Morgan")
+    player5 = Player(name="Sarah")
+    player6 = Player(name="Ally")
+    player7 = Player(name="Jonathan")
+    player8 = Player(name="Rebecca")
+
+    all_players = [player1, player2, player3, player4, player5, player6, player7, player8]
 
     game1 = Game(
         name="Sudoku",
         scoreMethod=ScoreMethod.LOW,
-        players=[player1,player2])
+        players=all_players)
     game2 = Game(
         name="Crossword",
         scoreMethod=ScoreMethod.LOW,
-        players=[player1, player2])
+        players=all_players)
 
     with Session(engine) as session:
         # Add and commit players and games first to get their IDs
-        session.add(player1)
-        session.add(player2)
+        for player in all_players:
+            session.add(player)
         session.add(game1)
         session.add(game2)
         session.commit()
 
         # Refresh to get auto-generated IDs
-        session.refresh(player1)
-        session.refresh(player2)
+        for player in all_players:
+            session.refresh(player)
         session.refresh(game1)
         session.refresh(game2)
 
