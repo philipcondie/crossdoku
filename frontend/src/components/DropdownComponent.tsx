@@ -3,7 +3,7 @@ import { DropdownMenu } from "radix-ui";
 import { HamburgerMenuIcon} from "@radix-ui/react-icons";
 
 export function Dropdown() {
-    const {logout} = useAuth();
+    const {selectPlayer, logout} = useAuth();
     return (
         <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
@@ -17,6 +17,12 @@ export function Dropdown() {
                     sideOffset={5}
                     align="end"
                 >
+                    <DropdownMenu.Item
+                    onClick={() => selectPlayer("")}
+                    className="px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer outline-none hover:bg-gray-100 focus:bg-gray-100"
+                    >
+                        Switch Player
+                    </DropdownMenu.Item>
                     <DropdownMenu.Item
                         onClick={logout}
                         className="px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer outline-none hover:bg-gray-100 focus:bg-gray-100"
