@@ -149,6 +149,21 @@ def getScoreboardDaily(session: Session,
     games = session.exec(select(Game)).all()
 
     gamesPublic = [GamePublic.model_validate(game) for game in games]
+
+    gameScores = getDailyScores(session,startDate=date,endDate=date)
+    sortedGameScores = []
+
+    for game in gamesPublic:
+        filteredScores = [score for score in gameScores if score.gameName == game.name]
+        order = False
+        if game.scoreMethod == ScoreMethod.HIGH:
+            order = True
+        sortedScores = sorted(filteredScores, key= lambda s: s.score, reverse=order)
+        sortedGameScores.extend(sortedScores)
+
+    combinedScores = getCombinedScores(session, date=date)
+    sortedCombined = sorted(combinedScores, key= lambda s: s.score, reverse=True)
+
     gamesPublic.append(
         GamePublic(
             name='Combined',
@@ -157,14 +172,11 @@ def getScoreboardDaily(session: Session,
         )
     )
 
-    gameScores = getDailyScores(session,startDate=date,endDate=date)
-    combinedScores = getCombinedScores(session, date=date)
-
     return DailyScoreboardResponse(
         date=date,
         players=[PlayerPublic.model_validate(player) for player in players],
         games=gamesPublic,
-        scores=(gameScores+combinedScores)
+        scores=(sortedCombined + sortedGameScores)
     )
 
 def getScoreboardMonthly(session:Session,

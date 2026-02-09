@@ -33,6 +33,10 @@ def calculateMonthlyPoints(games:dict, scoreEntries:list[dict[str,Any]]) -> list
         columns='gameName',
         values='t_score'
     ).reset_index()
+    # ensure all game columns exist in pivot (handles games with no scores this month)
+    for game in games.keys():
+        if game not in scoresWide.columns:
+            scoresWide[game] = np.nan
     # add points column and initialize to 1. All player-date combos here have full participation and get a point
     # create new column for participation points
     scoresWide['participation_points'] = 1
