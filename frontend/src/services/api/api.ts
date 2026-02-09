@@ -14,6 +14,16 @@ export class ApiError extends Error {
 export class DuplicateError extends ApiError {
 }
 
+async function handleResponseError(response: Response): Promise<never> {
+    let body;
+    try {
+    body = await response.json();
+    } catch {
+    throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+    }
+    throw new ApiError(response.status, body.detail);
+}
+
 export const api = {
     // authorize user
     async verifyPassword(password: string) {
@@ -31,7 +41,7 @@ export const api = {
     async getPlayers() {
         const response = await fetch (`${API_BASE_URL}/players`);
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+            await handleResponseError(response);
         }
         return response.json();
     },
@@ -39,7 +49,7 @@ export const api = {
     async getGames(playerName: string) {
         const response = await fetch (`${API_BASE_URL}/games/${playerName}`);
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+            await handleResponseError(response);
         }
         return response.json();
     },
@@ -61,7 +71,7 @@ export const api = {
 
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+            await handleResponseError(response);
         }
         return response.json();
     },
@@ -70,7 +80,7 @@ export const api = {
         const url = `${API_BASE_URL}/scores/combined?date=${date}`;
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+            await handleResponseError(response);
         }
         return response.json();
     },
@@ -79,7 +89,7 @@ export const api = {
         const url = `${API_BASE_URL}/scores/monthly?date=${date}`;
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+            await handleResponseError(response);
         }
         return response.json();
     },
@@ -94,7 +104,7 @@ export const api = {
             if (response.status == 409) {
                 throw new DuplicateError(response.status, response.statusText);
             }
-            throw new Error(`Failed to create score: ${response.statusText}`);
+            await handleResponseError(response);
         }
         return response.json();
     },
@@ -106,7 +116,7 @@ export const api = {
             body: JSON.stringify(scoreData),
         });
         if (!response.ok) {
-            throw new Error(`Failed to update score: ${response.statusText}`);
+            await handleResponseError(response);
         }
         return response.json();
     },
@@ -115,7 +125,7 @@ export const api = {
         const url = `${API_BASE_URL}/scores/daily?date=${date}`
         const response = await fetch(url);
         if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+            await handleResponseError(response);
         }
         return response.json()
     }
