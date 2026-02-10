@@ -44,7 +44,6 @@ build/
 *.log
 
 
-seed_data/
 database.db
 CLAUDE.md
 todo.md
