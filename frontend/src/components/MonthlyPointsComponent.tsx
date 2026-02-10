@@ -57,11 +57,26 @@ export function MonthlyPoints() {
         return pointMap.get(`${category}-${playerName}`)?.points ?? '-'
     }
 
-    // TODO(human): Implement getSortedPlayers
-    // Given a category (e.g., "Total", "Mini", "Combined"), return a sorted copy
-    // of the `players` array, ordered by their points in that category (highest first).
-    // Use `pointMap` for lookups. Decide how to handle players with no score ('-').
-    // Signature: const getSortedPlayers = (category: string): Player[] => { ... }
+    const getSortedPlayers = (category: string): Player[] => {
+        // create list of the scores for that category
+        let points = new Map();
+        for (const player of players) {
+            points.set(player,getPoint(category,player.name));
+        }
+
+        const sortedPlayers = [...points.entries()]
+            .sort((a,b) => {
+                const valA = a[1];
+                const valB = b[1];
+
+                if (valA === '-' && valB === '-') return 0;
+                if (valA === '-') return 1;
+                if (valB === '-') return -1;
+                return valB - valA;
+            })
+            .map(([key]) => key);
+        return sortedPlayers;
+    }
 
     const categoryDisplayNames: Record<string, string> = {
         "Participation": "Part.",
@@ -97,7 +112,7 @@ export function MonthlyPoints() {
                                 <p key={category} className="flex-1 font-bold">{categoryDisplayNames[category]}</p>
                             ))}
                         </div>
-                        {players.map(player => (
+                        {getSortedPlayers("Total").map(player => (
                             <div key={player.name} className="flex justify-between items-center py-2 border-b border-gray-200">
                                 <p className="flex-2">{player.name}</p>
                                 {categories.map(category => (
@@ -112,7 +127,7 @@ export function MonthlyPoints() {
                         key={game}
                     >
                         <h2 className="text-xl font-bold mb-3">{game}</h2>
-                        {players.map(player => (
+                        {getSortedPlayers(game).map(player => (
                             <div key={player.name} className="flex justify-between items-center py-2 border-b border-gray-200"> {/* Row */}
                                 <p className="flex-1">{player.name}</p> {/* Cell one */}
                                 <p className="font-bold ml-4">{getPoint(game,player.name)}</p> {/* Cell two */}
