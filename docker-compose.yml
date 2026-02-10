@@ -20,5 +20,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://crossdoku:crossdoku@db:5432/crossdoku
       - CORS_ORIGINS=http://localhost:5173
+      - ENVIRONMENT=development
+      - APP_PASSWORD=dev
     ports:
       - "8000:8000"
