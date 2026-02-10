@@ -8,8 +8,29 @@ import { Spinner } from "./SpinnerComponent";
 import { useAuth } from "@/context/AuthContext";
 
 
-function getTodaysDate() {
-    return new Date().toISOString().split('T')[0];
+function getTodaysDate(): string {
+    const now = new Date();
+    const currentHour = parseInt(
+        now.toLocaleString('en-US', {timeZone: 'America/New_York',hour:'numeric',hour12:false})
+    );
+
+    const today = now.toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        weekday: 'long' // 'Monday', 'Tuesday', etc.
+    });
+
+    // Helper: formats a Date as 'YYYY-MM-DD' in Eastern time
+    const formatEastern = (date: Date): string =>
+        date.toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    if (today === 'Saturday' && currentHour >= 18){
+        return formatEastern(tomorrow);
+    } else if (currentHour >= 22) {
+        return formatEastern(tomorrow);
+    }
+    return formatEastern(now);
 }
 
 export function ScoreEntry() {

@@ -33,7 +33,7 @@ export function CardContainer() {
     })
     
     return (
-        <div {...handlers} className="min-h-screen w-full overflow-x-hidden">
+        <div {...handlers} className="h-full w-full overflow-x-hidden flex flex-col">
             <div className="flex border-t border-gray-200">
                 {routes.map((route, index) => (
                     <button 
@@ -43,7 +43,7 @@ export function CardContainer() {
                     >{route.title}</button>
                 ))}
             </div>
-            <div className="p-4 bg-gray-100 min-h-screen">
+            <div className="p-4 bg-gray-100 flex-1">
                 <Outlet />
             </div>
         </div>

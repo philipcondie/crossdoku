@@ -3,7 +3,7 @@ import { Dropdown } from "./DropdownComponent";
 
 export function Layout() {
     return (
-        <div>
+        <div className="h-dvh flex flex-col overflow-hidden">
             <header className="bg-gray-50">
                 <div className="flex items-center justify-between px-4 py-4">
                     <div className="w-8" />
@@ -11,7 +11,7 @@ export function Layout() {
                     <Dropdown />
                 </div>
             </header>
-            <main>
+            <main className="flex-1 overflow-y-auto">
                 <Outlet />
             </main>
         </div>

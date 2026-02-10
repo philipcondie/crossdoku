@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useContext } from "react";
 import { api } from '@/services/api';
 
 interface AuthContextType {
@@ -12,19 +12,12 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({children} : {children: React.ReactNode}) {
-    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-    const [playerName, setPlayerName]  = useState<string>("");
-
-    useEffect(() => {
-        const savedAuth = localStorage.getItem('isAuthenticated');
-        const savedPlayerName = localStorage.getItem('playerName');
-        if (savedAuth) {
-            setIsAuthenticated(true);
-        }
-        if (savedPlayerName) {
-            setPlayerName(savedPlayerName);
-        }
-    }, [])
+    const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
+        () => localStorage.getItem('isAuthenticated') === "true"
+    );
+    const [playerName, setPlayerName] = useState<string>(
+        () => localStorage.getItem('playerName') ?? ""
+    );
 
     const selectPlayer = (playerName: string) => {
         localStorage.setItem('playerName', playerName);
