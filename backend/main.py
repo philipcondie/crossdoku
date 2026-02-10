@@ -1,5 +1,6 @@
 from typing import Annotated, Optional
 import datetime
+from zoneinfo import ZoneInfo
 from sqlmodel import Session, select, col
 from sqlalchemy import select as sa_select
 from sqlalchemy.exc import IntegrityError
@@ -24,6 +25,25 @@ async def lifespan(app: FastAPI):
     close_db()
 
 SessionDep = Annotated[Session,Depends(get_session)]
+
+EASTERN = ZoneInfo("America/New_York")
+
+def max_allowed_date() -> datetime.date:
+    """Return the latest date a score can be submitted for,
+    accounting for early puzzle release times.
+
+    - Sunday puzzles release at 6 PM Eastern on Saturday
+    - Mon-Sat puzzles release at 10 PM Eastern the night before
+    """
+    now = datetime.datetime.now(EASTERN)
+    today = now.date()
+    tomorrow = today + datetime.timedelta(days=1)
+    if tomorrow.weekday() == 6 and now.hour >= 18:
+        return tomorrow
+    elif now.hour >= 22:
+        return tomorrow
+
+    return today
 
 app = FastAPI(lifespan=lifespan)
 settings = get_settings()
@@ -55,7 +75,7 @@ def addScore(
     session: SessionDep,
     score: ScoreCreate
     ):
-    if score.date > datetime.date.today():
+    if score.date > max_allowed_date():
         raise InvalidDateException()
     
     return addNewScore(session, score)
@@ -81,9 +101,9 @@ def getScores(
     playerName: Optional[str] = None,
     gameName: Optional[str] = None,
 ):
-    if startDate > datetime.date.today():
+    if startDate > max_allowed_date():
         raise InvalidDateException()
-    if endDate and endDate > datetime.date.today():
+    if endDate and endDate > max_allowed_date():
         raise InvalidDateException()
     return getDailyScores(session,startDate,endDate,playerName,gameName)
     
@@ -92,7 +112,7 @@ def getCombinedScores(
     session: SessionDep,
     date: datetime.date
 ):
-    if date > datetime.date.today():
+    if date > max_allowed_date():
         raise InvalidDateException()
     return getCombinedScores(session,date)
 
@@ -101,7 +121,7 @@ def getDailyScoreboard(
     session: SessionDep,
     date: datetime.date
 ):
-    if date > datetime.date.today():
+    if date > max_allowed_date():
         raise InvalidDateException()
     return getScoreboardDaily(session, date)
 
@@ -110,6 +130,6 @@ def getMonthlyScoreboard(
     session: SessionDep,
     date: datetime.date
 ):
-    if date > datetime.date.today():
+    if date > max_allowed_date():
         raise InvalidDateException()
     return getScoreboardMonthly(session,date) 
