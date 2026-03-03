@@ -1,15 +1,12 @@
 from typing import Annotated, Optional
 import datetime
 from zoneinfo import ZoneInfo
-from sqlmodel import Session, select, col
-from sqlalchemy import select as sa_select
-from sqlalchemy.exc import IntegrityError
-from fastapi import FastAPI, Depends, HTTPException
+from sqlalchemy.orm import Session
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from .models import PlayerPublic, GamePublic, ScorePublic, ScoreCreate
-from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse, AuthRequest
+from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse, AuthRequest, PlayerPublic, GamePublic, ScorePublic, ScoreCreate
 from .database import get_session, create_db_and_tables, close_db, seed_database
 from .exceptions import InvalidPasswordException, InvalidDateException
 from .services import getAllPlayers, addNewScore, getGamesForPlayer, getDailyScores, getCombinedScores, getScoreboardDaily, getScoreboardMonthly, updateScore as updateScoreService

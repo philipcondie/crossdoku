@@ -1,12 +1,9 @@
-from sqlmodel import Session, col, select
-from sqlalchemy import select as sa_select
 import datetime
 import pandas as pd
 import numpy as np
 from typing import Any
 
-from .models import ScorePublic
-from .schemas import PlayerMonthlyPoint
+from .schemas import PlayerMonthlyPoint, ScorePublic
 
 def _compute_t_scores(scores: pd.DataFrame) -> pd.DataFrame:
     gameStats = scores.groupby(['date','gameName']).agg({'score':['mean','std']}).reset_index()

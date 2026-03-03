@@ -1,6 +1,6 @@
-from sqlmodel import create_engine, SQLModel, Session, select
-
-from .models import *
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine, select
+from .models import Base, Player, ScoreMethod, Game, Score
 from .config import get_settings
 
 # database set up
@@ -20,7 +20,7 @@ def create_db_and_tables():
         import os
         if os.path.exists("database.db"):
             os.remove("database.db")
-    SQLModel.metadata.create_all(engine)
+    Base.metadata.create_all(engine)
 
 def close_db():
     engine.dispose()
@@ -31,7 +31,7 @@ def get_session():
 
 def seed_database():
     with Session(engine) as session:
-        existing = session.exec(select(Player)).first()
+        existing = session.execute(select(Player)).first()
         if existing:
             return # already seeded
 

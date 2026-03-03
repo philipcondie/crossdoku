@@ -1,35 +1,33 @@
-from sqlmodel import Session, select, col
-from sqlalchemy import select as sa_select
+from sqlalchemy import select
+from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 import datetime
-from typing import Annotated, Optional
+from typing import Optional
 
-from .models import Player, Game, Score, ScoreMethod, GamePublic, PlayerPublic, ScoreCreate, ScorePublic
-from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse
+from .models import Player, Game, Score, ScoreMethod
+from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse, GamePublic, PlayerPublic, ScoreCreate, ScorePublic
 from .stats import calculateDailyCombinedScore, calculateMonthlyPoints
-from .exceptions import DuplicateScoreException, InvalidDateException, InvalidUpdateException
+from .exceptions import DuplicateScoreException, InvalidUpdateException
 
 
 def getAllPlayers(session: Session)->list[Player]:
-    return list(session.exec(select(Player)).all())
+    return list(session.scalars(select(Player)).all())
 
 def addNewScore(session: Session, score: ScoreCreate):
-    player = session.exec(select(Player).where(Player.name == score.playerName)).first()
+    player = session.scalars(select(Player).where(Player.name == score.playerName)).one_or_none()
     if not player:
         raise HTTPException(404, "Player Not Found")
-    assert player.id is not None
 
-    game = session.exec(select(Game).where(Game.name == score.gameName)).first()
+    game = session.scalars(select(Game).where(Game.name == score.gameName)).one_or_none()
     if not game:
         raise HTTPException(404, "Game not found")
-    assert game.id is not None
 
     # check for duplicate score
-    existing = session.exec(select(Score).where(Score.playerId == player.id,
+    existing = session.scalars(select(Score).where(Score.playerId == player.id,
                                                 Score.gameId == game.id,
                                                 Score.date == score.date)
-                                                ).first()
+                                                ).one_or_none()
     if existing:
         raise DuplicateScoreException(score.playerName,score.gameName,score.date.strftime("%Y-%m-%d"),existing.score)
     
@@ -53,21 +51,19 @@ def addNewScore(session: Session, score: ScoreCreate):
         raise DuplicateScoreException(score.playerName,score.gameName,score.date.strftime("%Y-%m-%d"),score.score)
     
 def updateScore(session: Session, score: ScoreCreate):
-    player = session.exec(select(Player).where(Player.name == score.playerName)).first()
+    player = session.scalars(select(Player).where(Player.name == score.playerName)).one_or_none()
     if not player:
         raise HTTPException(404, "Player Not Found")
-    assert player.id is not None
 
-    game = session.exec(select(Game).where(Game.name == score.gameName)).first()
+    game = session.scalars(select(Game).where(Game.name == score.gameName)).one_or_none()
     if not game:
         raise HTTPException(404, "Game not found")
-    assert game.id is not None
 
     # check for duplicate score
-    existing = session.exec(select(Score).where(Score.playerId == player.id,
+    existing = session.scalars(select(Score).where(Score.playerId == player.id,
                                                 Score.gameId == game.id,
                                                 Score.date == score.date)
-                                                ).first()
+                                                ).one_or_none()
     if existing is None:
         raise InvalidUpdateException()
 
@@ -82,7 +78,7 @@ def updateScore(session: Session, score: ScoreCreate):
             "score": existing.score
     }
 def getGamesForPlayer(session: Session, playerName: str) -> list[Game]:
-    player = session.exec(select(Player).where(Player.name == playerName)).first()
+    player = session.scalars(select(Player).where(Player.name == playerName)).one_or_none()
     if player is None:
         raise HTTPException(status_code=404,detail="Player not found")
     
@@ -95,24 +91,24 @@ def getDailyScores(
         playerName: Optional[str] = None,
         gameName: Optional[str] = None,) -> list[ScorePublic]:
     query = (
-        sa_select(
-            col(Score.date),
-            col(Game.name).label("gameName"),
-            col(Player.name).label("playerName"),
-            col(Score.score)
+        select(
+            Score.date,
+            Game.name.label("gameName"),
+            Player.name.label("playerName"),
+            Score.score
         )
         .select_from(Score)
-        .join(Game, col(Score.gameId) == col(Game.id))
-        .join(Player, col(Score.playerId) == col(Player.id))
+        .join(Game, Score.gameId == Game.id)
+        .join(Player, Score.playerId == Player.id)
     )
-    query = query.where(col(Score.date) >= startDate)
+    query = query.where(Score.date >= startDate)
     if endDate:
-        query = query.where(col(Score.date) <= endDate)
+        query = query.where(Score.date <= endDate)
     if playerName:
-        query = query.where(col(Player.name) == playerName)
+        query = query.where(Player.name == playerName)
     if gameName:
-        query = query.where(col(Game.name) == gameName)
-    results = session.execute(query).all()
+        query = query.where(Game.name == gameName)
+    results = session.execute(query).mappings().all()
     return [ScorePublic.model_validate(result) for result in results]
 
 def getCombinedScores(
@@ -120,22 +116,22 @@ def getCombinedScores(
         date: datetime.date
     ) -> list[ScorePublic]:
     # get games info for t_score multiplier
-    games = session.exec(select(Game))
-    gamesDict = {game.name: game.scoreMethod for game in games}
+    gameRows = session.scalars(select(Game))
+    gamesDict = {game.name: game.scoreMethod for game in gameRows}
 
     # get scores for day
     query = (
-        sa_select(
-            col(Game.name).label("gameName"),
-            col(Player.name).label("playerName"),
-            col(Score.score)
+        select(
+            Game.name.label("gameName"),
+            Player.name.label("playerName"),
+            Score.score
         )
         .select_from(Score)
-        .join(Game, col(Score.gameId) == col(Game.id))
-        .join(Player, col(Score.playerId) == col(Player.id))
+        .join(Game, Score.gameId == Game.id)
+        .join(Player, Score.playerId == Player.id)
     )
-    query = query.where(col(Score.date) == date)
-    scoreRows = session.execute(query).all()
+    query = query.where(Score.date == date)
+    scoreRows = session.execute(query).mappings().all()
 
     if not scoreRows:
         return []
@@ -145,8 +141,8 @@ def getCombinedScores(
 
 def getScoreboardDaily(session: Session,
                        date: datetime.date) -> DailyScoreboardResponse:
-    players = session.exec(select(Player)).all()
-    games = session.exec(select(Game)).all()
+    players = session.scalars(select(Player)).all()
+    games = session.scalars(select(Game)).all()
 
     gamesPublic = [GamePublic.model_validate(game) for game in games]
 
@@ -181,31 +177,29 @@ def getScoreboardDaily(session: Session,
 
 def getScoreboardMonthly(session:Session,
                          date: datetime.date) -> MonthlyScoreboardResponse:
-    players = session.exec(select(Player)).all()
-    games = session.exec(select(Game)).all()
+    players = session.scalars(select(Player)).all()
+    games = session.scalars(select(Game)).all()
 
     # Build categories list: participation, individual games, combined, total
     categories = ['Participation', 'Individual', 'Combined', 'Total']
     gameNames = [game.name for game in games]
-    # get games info for t_score multiplier
-    games = session.exec(select(Game))
     gamesDict = {game.name: game.scoreMethod for game in games}
 
     startDate = date.replace(day=1)
     endDate = date
     query = (
-        sa_select(
-            col(Score.date),
-            col(Game.name).label("gameName"),
-            col(Player.name).label("playerName"),
-            col(Score.score)
+        select(
+            Score.date,
+            Game.name.label("gameName"),
+            Player.name.label("playerName"),
+            Score.score
         )
         .select_from(Score)
-        .join(Game, col(Score.gameId) == col(Game.id))
-        .join(Player, col(Score.playerId) == col(Player.id))
+        .join(Game, Score.gameId == Game.id)
+        .join(Player, Score.playerId == Player.id)
     )
-    query = query.where(col(Score.date) >= startDate).where(col(Score.date) <= endDate)
-    scoreRows = session.execute(query).all()
+    query = query.where(Score.date >= startDate).where(Score.date <= endDate)
+    scoreRows = session.execute(query).mappings().all()
 
     if not scoreRows:
         raise HTTPException(404, "No scores found for this month")

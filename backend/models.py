@@ -1,80 +1,59 @@
 from typing import List
-from sqlalchemy import UniqueConstraint
-from sqlmodel import Field, Session, SQLModel, create_engine, select, Relationship
+from sqlalchemy import UniqueConstraint, Table, Column, ForeignKey, Date, CheckConstraint, Integer
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, relationship
 import datetime
-from enum import Enum
+from enum import IntEnum
+
+class Base(DeclarativeBase):
+    pass
 
 ### Link Table for Player-Game many-to-many relationship
 
-class PlayerGameLink(SQLModel, table=True):
-    player_id: int | None = Field(default=None, foreign_key="player.id", primary_key=True, ondelete="CASCADE")
-    game_id: int | None = Field(default=None, foreign_key="game.id", primary_key=True, ondelete="CASCADE")
+player_game_table = Table(
+    "player_game_link",
+    Base.metadata,
+    Column("player_id", ForeignKey("players.id",ondelete="CASCADE"),primary_key=True),
+    Column("game_id", ForeignKey("games.id",ondelete="CASCADE"),primary_key=True)
+)
 
-### Player Models
 
-class PlayerBase(SQLModel):
-    name: str
 
-class PlayerCreate(PlayerBase):
-    pass
+class Player(Base):
+    __tablename__ = "players"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True)
 
-class Player(PlayerBase,table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(unique=True)
-
-    games: List["Game"] = Relationship(back_populates="players", link_model=PlayerGameLink)
-    scores: List["Score"] = Relationship(back_populates="player", cascade_delete=True)
-
-class PlayerPublic(PlayerBase):
-    id: int
+    games: Mapped[List["Game"]] = relationship(secondary=player_game_table,back_populates="players")
+    scores: Mapped[List["Score"]] = relationship(back_populates="player",cascade="all, delete-orphan", passive_deletes=True)
 
 ### Game Models
 
-class ScoreMethod (int, Enum):
+class ScoreMethod(IntEnum):
     # this is needed to select winners and adjust t-scores appropriately based on if the winner is the highest or lowest value
     HIGH = 100
     LOW = -100
 
-class GameBase(SQLModel):
-    name: str
-    scoreMethod: ScoreMethod
+class Game(Base):
+    __tablename__ = "games"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    name: Mapped[str] = mapped_column(unique=True)
+    scoreMethod: Mapped[ScoreMethod] = mapped_column(Integer)
 
-class GameCreate(GameBase):
-    pass
+    players: Mapped[List["Player"]] = relationship(secondary=player_game_table,back_populates="games")
+    scores: Mapped[List["Score"]] = relationship(back_populates="game",cascade="all, delete-orphan", passive_deletes=True)
 
-class Game(GameBase, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    name: str = Field(unique=True)
-
-    players: List["Player"] = Relationship(back_populates="games", link_model=PlayerGameLink)
-    scores: List["Score"] = Relationship(back_populates="game", cascade_delete=True)
-
-class GamePublic(GameBase):
-    id: int
-
-### Score Models
-class ScoreBase(SQLModel):
-    date: datetime.date
-    score: int
-
-class Score(ScoreBase, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    date: datetime.date
-    playerId: int = Field(foreign_key="player.id", ondelete="CASCADE")
-    gameId: int = Field(foreign_key="game.id", ondelete="CASCADE")
-    score: int = Field(ge=0)
+class Score(Base):
+    __tablename__ = "scores"
+    id: Mapped[int] = mapped_column(primary_key=True)
+    date: Mapped[datetime.date] = mapped_column(Date)
+    playerId: Mapped[int] = mapped_column(ForeignKey("players.id",ondelete="CASCADE"))
+    gameId: Mapped[int] = mapped_column(ForeignKey("games.id",ondelete="CASCADE"))
+    score: Mapped[int] = mapped_column(CheckConstraint('score >= 0',name='min_score_check'))
 
     __table_args__ = (
         UniqueConstraint("playerId","gameId","date", name="uq_player_game_date"),
     )
 
-    player: Player = Relationship(back_populates="scores")
-    game: Game = Relationship(back_populates="scores")
+    player: Mapped[Player] = relationship(back_populates="scores")
+    game: Mapped[Game] = relationship(back_populates="scores")
 
-class ScorePublic(ScoreBase):
-    playerName: str
-    gameName: str
-
-class ScoreCreate(ScoreBase):
-    playerName: str
-    gameName: str
