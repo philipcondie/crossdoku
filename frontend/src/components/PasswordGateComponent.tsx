@@ -6,7 +6,7 @@ import type { Player } from '@/services/api';
 
 
 export function PasswordGate () {
-    const {isAuthenticated, playerName, selectPlayer, login} = useAuth();
+    const {isAuthenticated, playerName, selectPlayer, login, logout} = useAuth();
     const [password, setPassword] = useState<string>("");
     const [selectedPlayer, setSelectedPlayer] = useState<string>("");
     const [error, setError] = useState<string>("");
@@ -48,8 +48,9 @@ export function PasswordGate () {
                                 <option key={player.id} value={player.name}>{player.name}</option>
                             ))}
                         </select>
-                        <div className="mt-4 text-right">
-                            <button type='submit' className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold w-full py-3.5">Select</button>                     
+                        <div className="mt-4 gap-4 flex">
+                            <button onClick={logout} className="bg-gray-200 text-gray-600 hover:bg-gray-300 rounded-lg font-semibold flex-1 py-3.5">Logout</button>                     
+                            <button onSubmit={handleSelect} className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold flex-1 py-3.5">Select</button>
                         </div>
                     </form>
                 </div>
