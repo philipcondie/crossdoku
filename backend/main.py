@@ -10,18 +10,7 @@ from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse, AuthReq
 from .database import get_session, create_db_and_tables, close_db, seed_database
 from .exceptions import InvalidPasswordException, InvalidDateException
 from .services import getAllPlayers, addNewScore, getGamesForPlayer, getDailyScores, getCombinedScores, getScoreboardDaily, getScoreboardMonthly, updateScore as updateScoreService
-from .config import get_settings
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # start up operations
-    create_db_and_tables()
-    seed_database()
-    yield
-    # shut down operations
-    close_db()
-
-SessionDep = Annotated[Session,Depends(get_session)]
+from .config import get_settings, ENV_NAME_DEV, ENV_NAME_PROD
 
 EASTERN = ZoneInfo("America/New_York")
 
@@ -42,8 +31,21 @@ def max_allowed_date() -> datetime.date:
 
     return today
 
-app = FastAPI(lifespan=lifespan)
 settings = get_settings()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # start up operations
+    if settings.environment == ENV_NAME_DEV:
+        create_db_and_tables()
+        seed_database()
+    yield
+    # shut down operations
+    close_db()
+
+SessionDep = Annotated[Session,Depends(get_session)]
+
+app = FastAPI(lifespan=lifespan)
 
 origins = settings.cors_origins.split(",")
 

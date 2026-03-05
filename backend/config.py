@@ -1,6 +1,8 @@
 from functools import lru_cache
 from pydantic_settings import BaseSettings
 
+ENV_NAME_DEV = "dev"
+ENV_NAME_PROD = "prod"
 
 class Settings(BaseSettings):
     """
@@ -11,7 +13,7 @@ class Settings(BaseSettings):
     2. .env file (if python-dotenv is installed)
     """
 
-    database_url: str = "sqlite:///database.db"
+    database_url: str = "sqlite:///:memory:" 
     cors_origins: str = "http://localhost:5173"
     environment: str = "development"
     app_password: str = "dev"

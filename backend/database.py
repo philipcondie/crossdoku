@@ -1,25 +1,33 @@
 from sqlalchemy.orm import Session
 from sqlalchemy import create_engine, select
+from sqlalchemy.pool import StaticPool
 from .models import Base, Player, ScoreMethod, Game, Score
 from .config import get_settings
 
 # database set up
 settings = get_settings()
 
-# SQLite requires check_same_thread=False for FastAPI's async handling
-connect_args = {"check_same_thread": False} if settings.database_url.startswith("sqlite") else {}
-engine = create_engine(
-    settings.database_url, 
-    connect_args=connect_args, 
-    echo=(settings.environment == "development"),
-    pool_pre_ping=True
+is_sqlite = settings.database_url.startswith("sqlite")
+is_memory = ":memory:" in settings.database_url
+
+if is_memory:
+    # In-memory SQLite: use StaticPool so all connections share the same DB
+    engine = create_engine(
+        settings.database_url,
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+        echo=(settings.environment == "dev"),
+    )
+else:
+    connect_args = {"check_same_thread": False} if is_sqlite else {}
+    engine = create_engine(
+        settings.database_url,
+        connect_args=connect_args,
+        echo=(settings.environment == "dev"),
+        pool_pre_ping=True,
     )
 
 def create_db_and_tables():
-    if settings.database_url.startswith("sqlite"):
-        import os
-        if os.path.exists("database.db"):
-            os.remove("database.db")
     Base.metadata.create_all(engine)
 
 def close_db():

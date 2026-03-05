@@ -15,8 +15,8 @@ A collaborative puzzle scoring and leaderboard app for tracking daily Crossword 
 | Layer    | Technology                              |
 |----------|-----------------------------------------|
 | Frontend | React 19, TypeScript, Vite, Tailwind CSS |
-| Backend  | FastAPI (Python 3.12), SQLModel          |
-| Database | PostgreSQL 15 (dev: SQLite)              |
+| Backend  | FastAPI (Python 3.12), SQLAlchemy        |
+| Database | PostgreSQL 15 (dev: SQLite in-memory)    |
 | Infra    | Docker Compose                           |
 
 ## Getting Started
@@ -50,7 +50,7 @@ The app will be available at `http://localhost:5173`.
 
 | Variable       | Default                                              | Description                        |
 |----------------|------------------------------------------------------|------------------------------------|
-| `DATABASE_URL` | `sqlite:///./crossdoku.db`                           | PostgreSQL or SQLite connection URL |
+| `DATABASE_URL` | `sqlite:///:memory:`                                 | PostgreSQL or SQLite connection URL |
 | `CORS_ORIGINS` | `http://localhost:5173`                              | Allowed frontend origins           |
 | `ENVIRONMENT`  | `development`                                        | App environment                    |
 | `APP_PASSWORD` | `dev`                                                | App-level access password          |
@@ -67,7 +67,7 @@ VITE_API_URL=http://localhost:8000
 crossdoku/
 ├── backend/
 │   ├── main.py          # FastAPI app and route registration
-│   ├── models.py        # SQLModel database models
+│   ├── models.py        # SQLAlchemy database models
 │   ├── config.py        # Pydantic settings
 │   ├── routes/          # API route handlers
 │   └── seed_data/       # CSV files for initial players and scores
