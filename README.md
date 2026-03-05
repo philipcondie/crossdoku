@@ -77,6 +77,16 @@ crossdoku/
         ├── pages/       # Route-level page components
         └── api/         # API client functions
 ```
+### Database Migrations (Alembic)
+
+Migrations live in `backend/alembic/versions/`. To generate a new migration after changing models:
+
+```bash
+cd backend
+DATABASE_URL="postgresql+psycopg2://..." alembic revision --autogenerate -m "description"
+```
+
+Review the generated file in `alembic/versions/` before committing — autogenerate has known blind spots (e.g. `CheckConstraint`). Commit the migration file and it will be applied automatically on next deploy.
 
 ## Scoring
 
