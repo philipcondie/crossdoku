@@ -69,14 +69,27 @@ crossdoku/
 │   ├── main.py          # FastAPI app and route registration
 │   ├── models.py        # SQLAlchemy database models
 │   ├── config.py        # Pydantic settings
-│   ├── routes/          # API route handlers
-│   └── seed_data/       # CSV files for initial players and scores
+│   ├── seeding.py       # Dev database seeding (ORM-based)
+│   ├── seed_data/       # CSV files for initial players and scores
+│   └── scripts/
+│       └── upload_data.py  # Production backfill script (idempotent)
 └── frontend/
     └── src/
         ├── components/  # UI components
         ├── pages/       # Route-level page components
         └── api/         # API client functions
 ```
+
+### Backfilling Production Data
+
+To upload seed data to a production PostgreSQL database:
+
+```bash
+cd backend
+python scripts/upload_data.py --db-url "postgresql://..."
+```
+
+The script is idempotent — safe to run multiple times with no duplicate inserts.
 ### Database Migrations (Alembic)
 
 Migrations live in `backend/alembic/versions/`. To generate a new migration after changing models:
