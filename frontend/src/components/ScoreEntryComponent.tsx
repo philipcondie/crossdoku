@@ -76,11 +76,11 @@ export function ScoreEntry() {
             setGameScore('');
         } catch (error) {
             if (error instanceof DuplicateError){
-                toast.error("DUPLICATE")
+                toast.error("Duplicate Score")
                 setUpdate(true);
             } else {
                 console.error('Error creating score:', error);
-                const message = error instanceof Error ? error.message : "Failed to save score"
+                const message = error instanceof Error ? error.message : "Failed to save score";
                 toast.error(message)
             }
         }

@@ -37,6 +37,22 @@ export const api = {
         }
         return response.json();
     },
+    // add player
+    async addPlayer(name: string) {
+        const response = await fetch(`${API_BASE_URL}/players/new`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json'},
+            body: JSON.stringify({"name":name})
+        });
+
+        if (!response.ok) {
+            if (response.status == 409) {
+                throw new DuplicateError(response.status, response.statusText);
+            }
+            await handleResponseError(response);
+        }
+        return response.json()
+    },
     // get players
     async getPlayers() {
         const response = await fetch (`${API_BASE_URL}/players`);

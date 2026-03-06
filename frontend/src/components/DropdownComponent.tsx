@@ -1,9 +1,11 @@
 import { useAuth } from "@/context/AuthContext";
 import { DropdownMenu } from "radix-ui";
 import { HamburgerMenuIcon} from "@radix-ui/react-icons";
+import { useNavigate } from "react-router-dom";
 
 export function Dropdown() {
     const {selectPlayer, logout} = useAuth();
+    const navigate = useNavigate();
     return (
         <DropdownMenu.Root>
             <DropdownMenu.Trigger asChild>
@@ -16,10 +18,22 @@ export function Dropdown() {
                     className="bg-white rounded-lg shadow-md border border-gray-200 p-1 min-w-[140px]"
                     sideOffset={5}
                     align="end"
-                >
+                >   
                     <DropdownMenu.Item
-                    onClick={() => selectPlayer("")}
-                    className="px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer outline-none hover:bg-gray-100 focus:bg-gray-100"
+                        onClick={() => navigate('/')}
+                        className="px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer outline-none hover:bg-gray-100 focus:bg-gray-100"
+                    >
+                        Scores
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item
+                        onClick={() => navigate('/player')}
+                        className="px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer outline-none hover:bg-gray-100 focus:bg-gray-100"
+                    >
+                        Add Player
+                    </DropdownMenu.Item>
+                    <DropdownMenu.Item
+                        onClick={() => selectPlayer("")}
+                        className="px-3 py-2 text-sm text-gray-700 rounded-md cursor-pointer outline-none hover:bg-gray-100 focus:bg-gray-100"
                     >
                         Switch Player
                     </DropdownMenu.Item>

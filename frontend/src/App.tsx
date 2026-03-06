@@ -2,6 +2,7 @@ import { ToastContainer } from 'react-toastify';
 
 import {Routes, Route, Navigate}  from 'react-router-dom'
 import { ScoreEntry } from './components/ScoreEntryComponent';
+import { AddPlayer } from './components/AddPlayerComponent';
 import { DailyScores } from './components/DailyScoresComponent';
 import { MonthlyPoints } from './components/MonthlyPointsComponent';
 import { CardContainer } from './components/CardContainerComponent';
@@ -22,6 +23,7 @@ function App() {
               <Route path="/daily" element={<DailyScores />} />
               <Route path="/score" element={<ScoreEntry  />} />
             </Route>
+            <Route path="/player" element={<AddPlayer />} />
           </Route>
         </Route>
       </Routes>
