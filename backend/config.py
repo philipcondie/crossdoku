@@ -13,9 +13,9 @@ class Settings(BaseSettings):
     2. .env file (if python-dotenv is installed)
     """
 
-    database_url: str = "sqlite:///:memory:" 
+    database_url: str = "sqlite:///database.db" 
     cors_origins: str = "http://localhost:5173"
-    environment: str = "development"
+    environment: str = "dev"
     app_password: str = "dev"
 
     class Config:

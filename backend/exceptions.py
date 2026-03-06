@@ -7,7 +7,14 @@ class DuplicateScoreException(ScoreboardExcepction):
     def __init__(self,player: str, game: str, date:str, score: int):
         super().__init__(
             status_code=status.HTTP_409_CONFLICT,
-            detail=f"Score of {score} already exists for {player} in {game} for {date} "
+            detail=f"Score of {score} already exists for {player} in {game} for {date}"
+        )
+
+class DuplicatePlayerException(ScoreboardExcepction):
+    def __init__(self, player: str):
+        super().__init__(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"Player with name {player} already exists"
         )
 
 class InvalidDateException(ScoreboardExcepction):

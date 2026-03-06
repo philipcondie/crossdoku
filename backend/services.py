@@ -1,18 +1,32 @@
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
 import datetime
 from typing import Optional
 
 from .models import Player, Game, Score, ScoreMethod
-from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse, GamePublic, PlayerPublic, ScoreCreate, ScorePublic
+from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse, GamePublic, PlayerPublic, ScoreCreate, ScorePublic, PlayerCreate
 from .stats import calculateDailyCombinedScore, calculateMonthlyPoints
-from .exceptions import DuplicateScoreException, InvalidUpdateException
+from .exceptions import DuplicateScoreException, InvalidUpdateException, DuplicatePlayerException
 
 
 def getAllPlayers(session: Session)->list[Player]:
     return list(session.scalars(select(Player)).all())
+
+def addPlayer(session: Session, player: PlayerCreate)-> Player:
+    if session.scalars(select(Player).where(Player.name == player.name)).one_or_none():
+        raise DuplicatePlayerException(player.name)
+    
+    try:
+        player_new = Player(name=player.name)
+        session.add(player_new)
+        session.commit()
+        session.refresh(player_new)
+        return player_new
+    except IntegrityError:
+        session.rollback()
+        raise DuplicatePlayerException(player.name)
 
 def addNewScore(session: Session, score: ScoreCreate):
     player = session.scalars(select(Player).where(Player.name == score.playerName)).one_or_none()
@@ -77,11 +91,12 @@ def updateScore(session: Session, score: ScoreCreate):
             "gameName": game.name,
             "score": existing.score
     }
+
 def getGamesForPlayer(session: Session, playerName: str) -> list[Game]:
-    player = session.scalars(select(Player).where(Player.name == playerName)).one_or_none()
+    player = session.scalars(select(Player).where(Player.name == playerName).options(selectinload(Player.games))).one_or_none()
     if player is None:
         raise HTTPException(status_code=404,detail="Player not found")
-    
+
     return player.games
 
 def getDailyScores(

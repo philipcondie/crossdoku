@@ -6,11 +6,11 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
-from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse, AuthRequest, PlayerPublic, GamePublic, ScorePublic, ScoreCreate
-from .database import get_session, create_db_and_tables, close_db
+from .schemas import DailyScoreboardResponse, MonthlyScoreboardResponse, AuthRequest, PlayerPublic, GamePublic, ScorePublic, ScoreCreate, PlayerCreate
+from .database import get_session, create_db_and_tables, close_db, delete_db
 from .seeding import seed_database
 from .exceptions import InvalidPasswordException, InvalidDateException
-from .services import getAllPlayers, addNewScore, getGamesForPlayer, getDailyScores, getCombinedScores, getScoreboardDaily, getScoreboardMonthly, updateScore as updateScoreService
+from .services import getAllPlayers, addPlayer as addPlayerService, addNewScore, getGamesForPlayer, getDailyScores, getCombinedScores, getScoreboardDaily, getScoreboardMonthly, updateScore as updateScoreService
 from .config import get_settings, ENV_NAME_DEV, ENV_NAME_PROD
 
 EASTERN = ZoneInfo("America/New_York")
@@ -43,6 +43,8 @@ async def lifespan(app: FastAPI):
     yield
     # shut down operations
     close_db()
+    if settings.environment == ENV_NAME_DEV:
+        delete_db()
 
 SessionDep = Annotated[Session,Depends(get_session)]
 
@@ -69,6 +71,13 @@ def getPlayers(
     session: SessionDep
     ):
     return getAllPlayers(session=session)
+
+@app.post("/players/new", response_model=PlayerPublic)
+def addPlayer(
+    session: SessionDep,
+    player: PlayerCreate
+):
+    return addPlayerService(session, player)
 
 @app.post("/score/", response_model=ScorePublic)
 def addScore(
