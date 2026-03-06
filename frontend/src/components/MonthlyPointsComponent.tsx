@@ -13,8 +13,8 @@ export function MonthlyPoints() {
     const [points, setPoints] = useState<Point[]>([]);
     const [error, setError] = useState<Error | null>(null);
     const [loading, setLoading] = useState(true);
-    const dateDefault = new Date('2026-01-31T00:00:00');
-    const [date, setDate] = useState<Date>(dateDefault); // new Date().toISOString().split('T')[0];
+    const dateDefault = new Date();
+    const [date, setDate] = useState<Date>(dateDefault); 
 
     // load data
     useEffect(() => {
